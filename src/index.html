@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <span id="loading">Loading..</span>
+
+      <div id="lineProfile" style="display: none">
+        <img
+          id="lineImage"
+          width="100px"
+          src="https://fastly.picsum.photos/id/593/100/100.jpg?hmac=Y-i_x40WcqkjfQXBqnYsYq8UpzCos6Vb4Nj-9QiJQFk"
+        />
+        <div id="lineName">Hello Name</div>
+        <div id="lineUID">UID: Your UID</div>
+
+        <hr />
+        <div>
+          <input type="text" id="lineMessage" />
+          <button id="sendMessage" onclick="sendMessage()">Send Message</button>
+        </div>
+      </div>
+
+      <br />
+      <button id="logout" onclick="logout()">LOGOUT</button>
+    </div>
+
+    <script
+      charset="utf-8"
+      src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
+      integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      let userId = "";
+      const main = async () => {
+        await liff.init({ liffId: "2004664688-2k1kBEoe" });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return false;
+        }
+
+        const profile = await liff.getProfile();
+        console.log("Already Login ! : ", profile);
+
+        loading.style.display = "none";
+        lineImage.src = profile.pictureUrl;
+        lineName.textContent = `Hello ${profile.displayName} !`;
+        lineUID.textContent = `UserId : ${profile.userId}`;
+        lineProfile.style.display = "block";
+
+        userId = profile.userId;
+      };
+
+      const logout = async () => {
+        liff.logout();
+        window.location.reload();
+      };
+
+      main();
+
+      const sendMessage = async () => {
+        try {
+          if (!lineMessage.value) {
+            throw new Error("message not found");
+          }
+          const response = await axios.post(
+            "https://a013-182-232-115-229.ngrok-free.app/send-message",
+            {
+              userId: userId,
+              message: lineMessage.value,
+            }
+          );
+
+          res.json({
+            message: "Send message successfully",
+            responseData: response.data,
+          });
+        } catch (error) {
+          res.json({
+            message: "Send message faild",
+            responseData: error.response,
+          });
+        }
+      };
+    </script>
+  </body>
+</html>
